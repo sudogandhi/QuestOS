@@ -11,12 +11,14 @@ import { Alert, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AppNavigator } from "./src/navigation/AppNavigator";
 import { initDatabase } from "./src/storage/db";
+import { hasImportedGoals } from "./src/storage/planImport";
 import { getUserProfile, UserProfile } from "./src/storage/userProfile";
 import { BrandThemeProvider, useAppTheme } from "./src/theme/ThemeProvider";
 
 function AppContent() {
   const { colors, isDark, setAccentFromGender } = useAppTheme();
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [hasGoals, setHasGoals] = useState(false);
   const [ready, setReady] = useState(false);
   const [jakartaLoaded] = useJakartaFonts({
     PlusJakartaSans_500Medium,
@@ -28,9 +30,10 @@ function AppContent() {
 
   useEffect(() => {
     initDatabase()
-      .then(() => getUserProfile())
-      .then((savedProfile) => {
+      .then(async () => {
+        const [savedProfile, goalsPresent] = await Promise.all([getUserProfile(), hasImportedGoals()]);
         setProfile(savedProfile);
+        setHasGoals(goalsPresent);
         setAccentFromGender(savedProfile?.gender);
       })
       .catch((error) => {
@@ -60,7 +63,7 @@ function AppContent() {
   return (
     <NavigationContainer theme={navTheme}>
       <StatusBar style={isDark ? "light" : "dark"} />
-      <AppNavigator profile={profile} />
+      <AppNavigator profile={profile} hasGoals={hasGoals} />
     </NavigationContainer>
   );
 }

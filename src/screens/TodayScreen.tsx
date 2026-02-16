@@ -1,4 +1,5 @@
 import { ReactNode, useEffect, useMemo, useState } from "react";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
 import { ActivityIndicator, Alert, LayoutAnimation, Modal, Platform, Pressable, StyleSheet, Text, UIManager, View } from "react-native";
 import { QuestCard } from "../components/QuestCard";
 import { Screen } from "../components/Screen";
@@ -16,6 +17,7 @@ import { getUserProfile } from "../storage/userProfile";
 
 export function TodayScreen() {
   const { colors } = useAppTheme();
+  const tabBarHeight = useBottomTabBarHeight();
   const [quests, setQuests] = useState(sampleQuests);
   const [userName, setUserName] = useState<string | null>(null);
   const [logOpen, setLogOpen] = useState(false);
@@ -91,7 +93,7 @@ export function TodayScreen() {
 
   return (
     <>
-      <Screen>
+      <Screen contentContainerStyle={{ paddingBottom: tabBarHeight + 72 }}>
         {userName && <Text style={[styles.greeting, { color: colors.textMuted }]}>Welcome back, {userName}</Text>}
         <FadeInUp>
           <Text style={[styles.title, { color: colors.text }]}>Today</Text>

@@ -1,6 +1,5 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TabBrandIcon } from "../components/BrandIcon";
 import { GoalsScreen } from "../screens/GoalsScreen";
@@ -68,14 +67,14 @@ function MainTabs() {
           paddingTop: 8,
           borderRadius: 24,
           borderTopWidth: 0,
-          backgroundColor: isDark ? "rgba(29,22,26,0.94)" : "rgba(255,255,255,0.92)",
+          backgroundColor: isDark ? "rgba(24,18,22,0.98)" : "rgba(255,255,255,0.98)",
           shadowColor: "#5A1F33",
-          shadowOpacity: 0.2,
-          shadowRadius: 20,
+          shadowOpacity: 0.26,
+          shadowRadius: 22,
           shadowOffset: { width: 0, height: 10 },
           elevation: 10,
-          borderWidth: 1,
-          borderColor: colors.border
+          borderWidth: 1.4,
+          borderColor: isDark ? "rgba(255,255,255,0.16)" : "rgba(32,26,23,0.14)"
         },
         tabBarLabelStyle: {
           fontFamily: tokens.font.body,
@@ -110,15 +109,15 @@ function MainTabs() {
   );
 }
 
-export function AppNavigator({ profile }: { profile: UserProfile | null }) {
+export function AppNavigator({ profile, hasGoals }: { profile: UserProfile | null; hasGoals: boolean }) {
   const { colors } = useAppTheme();
-  const initialRouteName: keyof RootStackParamList = profile ? "MainTabs" : "OnboardingWelcome";
+  const initialRouteName: keyof RootStackParamList = !profile ? "OnboardingWelcome" : hasGoals ? "MainTabs" : "SetupChoice";
 
   return (
     <Stack.Navigator
       initialRouteName={initialRouteName}
       screenOptions={{
-        animation: Platform.OS === "android" ? "fade_from_bottom" : "slide_from_right",
+        animation: "slide_from_right",
         headerBackTitleVisible: false,
         headerTintColor: colors.text,
         headerShadowVisible: false,

@@ -102,6 +102,12 @@ export async function importPlanRows(rows: CsvPlanRow[]): Promise<ImportResult> 
   };
 }
 
+export async function hasImportedGoals() {
+  const db = getDb();
+  const row = await db.getFirstAsync<{ count: number }>(`SELECT COUNT(*) AS count FROM goals;`);
+  return (row?.count ?? 0) > 0;
+}
+
 export async function getTodaySchedule(date: string) {
   const db = getDb();
   return db.getAllAsync<{
