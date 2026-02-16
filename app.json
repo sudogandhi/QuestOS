@@ -4,19 +4,28 @@
     "slug": "questos",
     "version": "0.1.0",
     "orientation": "portrait",
+    "backgroundColor": "#130F12",
     "userInterfaceStyle": "light",
     "splash": {
       "resizeMode": "contain",
-      "backgroundColor": "#FFFFFF"
+      "backgroundColor": "#130F12"
     },
     "assetBundlePatterns": ["**/*"],
+    "androidStatusBar": {
+      "backgroundColor": "#130F12",
+      "barStyle": "light-content"
+    },
+    "androidNavigationBar": {
+      "backgroundColor": "#130F12",
+      "barStyle": "light-content"
+    },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
-        "backgroundColor": "#FFFFFF"
+        "backgroundColor": "#130F12"
       }
     }
   }

@@ -28,7 +28,11 @@ export type RootStackParamList = {
   Welcome: undefined;
   SetupChoice: undefined;
   OnboardingWizard: undefined;
-  PromptImport: undefined;
+  PromptImport:
+    | {
+        promptText?: string;
+      }
+    | undefined;
   PlanPreview:
     | {
         importSummary?: {
@@ -117,6 +121,7 @@ export function AppNavigator({ profile, hasGoals }: { profile: UserProfile | nul
     <Stack.Navigator
       initialRouteName={initialRouteName}
       screenOptions={{
+        presentation: "card",
         animation: "slide_from_right",
         headerBackTitleVisible: false,
         headerTintColor: colors.text,

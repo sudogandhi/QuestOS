@@ -34,7 +34,14 @@ export function PlanPreviewScreen({ navigation, route }: Props) {
       <View style={styles.card}>
         <Text style={styles.h2}>Actions with difficulty and XP</Text>
       </View>
-      <PrimaryButton label="Activate plan" onPress={() => navigation.replace("MainTabs")} />
+      <View style={styles.actions}>
+        <PrimaryButton
+          label="Activate plan"
+          onPress={() => navigation.reset({ index: 0, routes: [{ name: "MainTabs" }] })}
+        />
+        <PrimaryButton label="Import another CSV" variant="secondary" onPress={() => navigation.navigate("PromptImport")} />
+        <PrimaryButton label="Back to setup" variant="secondary" onPress={() => navigation.navigate("SetupChoice")} />
+      </View>
     </Screen>
   );
 }
@@ -80,6 +87,8 @@ const makeStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) =>
       fontSize: tokens.type.body,
       fontWeight: "600",
       fontFamily: tokens.font.heading
+    },
+    actions: {
+      gap: tokens.spacing.sm
     }
   });
-

@@ -1,6 +1,9 @@
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useMemo, useState } from "react";
 import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, View } from "react-native";
+import * as Clipboard from "expo-clipboard";
+import * as DocumentPicker from "expo-document-picker";
+import * as FileSystem from "expo-file-system";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
 import { parseAndValidatePlanCsv } from "../import/csvPlan";
@@ -11,14 +14,16 @@ import { useAppTheme } from "../theme/ThemeProvider";
 
 type Props = NativeStackScreenProps<RootStackParamList, "PromptImport">;
 
-const prompt = "Create CSV columns: date, goal, action, stat, durationMin, difficulty, xp";
+const defaultPrompt = "Create CSV columns: date, goal, action, stat, durationMin, difficulty, xp";
 
-export function PromptImportScreen({ navigation }: Props) {
+export function PromptImportScreen({ navigation, route }: Props) {
   const { colors } = useAppTheme();
   const styles = makeStyles(colors);
   const [csvText, setCsvText] = useState("");
   const [errors, setErrors] = useState<string[]>([]);
   const [isImporting, setIsImporting] = useState(false);
+  const [isPickingFile, setIsPickingFile] = useState(false);
+  const prompt = route.params?.promptText?.trim() || defaultPrompt;
 
   const preview = useMemo(() => parseAndValidatePlanCsv(csvText), [csvText]);
 
@@ -41,14 +46,66 @@ export function PromptImportScreen({ navigation }: Props) {
     }
   };
 
+  const handleCopyPrompt = async () => {
+    try {
+      await Clipboard.setStringAsync(prompt);
+      Alert.alert("Copied", "Prompt copied to clipboard. Paste it in your LLM.");
+    } catch (error) {
+      Alert.alert("Copy failed", error instanceof Error ? error.message : "Unknown error");
+    }
+  };
+
+  const handleUploadCsv = async () => {
+    try {
+      setIsPickingFile(true);
+      const result = await DocumentPicker.getDocumentAsync({
+        multiple: false,
+        copyToCacheDirectory: true,
+        type: ["text/csv", "text/comma-separated-values", "application/csv", "application/vnd.ms-excel", "text/plain"]
+      });
+
+      if (result.canceled || !result.assets?.[0]) {
+        return;
+      }
+
+      const content = await FileSystem.readAsStringAsync(result.assets[0].uri);
+      setCsvText(content);
+      setErrors([]);
+    } catch (error) {
+      Alert.alert("Upload failed", error instanceof Error ? error.message : "Could not read CSV file");
+    } finally {
+      setIsPickingFile(false);
+    }
+  };
+
   return (
     <Screen>
       <Text style={styles.title}>Generate your plan</Text>
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Prompt</Text>
         <Text style={styles.cardBody}>{prompt}</Text>
+        <PrimaryButton label="Copy prompt" onPress={() => void handleCopyPrompt()} variant="secondary" />
       </View>
-      <Text style={styles.label}>Paste CSV output</Text>
+      <View style={styles.csvHeader}>
+        <Text style={styles.label}>Paste CSV output</Text>
+        <View style={styles.csvActions}>
+          <PrimaryButton
+            label="Clear"
+            onPress={() => {
+              setCsvText("");
+              setErrors([]);
+            }}
+            variant="secondary"
+            style={styles.clearButton}
+          />
+          <PrimaryButton
+            label={isPickingFile ? "Uploading..." : "Upload CSV"}
+            onPress={() => void handleUploadCsv()}
+            variant="secondary"
+            style={styles.uploadButton}
+          />
+        </View>
+      </View>
       <TextInput
         multiline
         style={styles.input}
@@ -116,6 +173,25 @@ const makeStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) =>
       color: colors.textMuted,
       fontFamily: tokens.font.body
     },
+    csvHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: tokens.spacing.sm
+    },
+    csvActions: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: tokens.spacing.sm
+    },
+    clearButton: {
+      minWidth: 88,
+      height: 42
+    },
+    uploadButton: {
+      minWidth: 128,
+      height: 42
+    },
     input: {
       minHeight: 180,
       borderRadius: tokens.radius.md,
@@ -161,4 +237,3 @@ const makeStyles = (colors: ReturnType<typeof useAppTheme>["colors"]) =>
       gap: tokens.spacing.sm
     }
   });
-

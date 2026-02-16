@@ -53,7 +53,7 @@ function AppContent() {
     colors: {
       ...DefaultTheme.colors,
       background: colors.bg,
-      card: colors.surface,
+      card: colors.bg,
       text: colors.text,
       border: colors.border,
       primary: colors.primary

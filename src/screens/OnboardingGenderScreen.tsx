@@ -33,7 +33,7 @@ export function OnboardingGenderScreen({ navigation, route }: Props) {
         age: route.params.age,
         gender
       });
-      navigation.replace("SetupChoice");
+      navigation.navigate("SetupChoice");
     } catch (error) {
       Alert.alert("Could not save profile", error instanceof Error ? error.message : "Unknown error");
     } finally {
