@@ -13,7 +13,6 @@ type SetupChoice = "guided" | "import" | "blank";
 
 const choices: Array<{ id: SetupChoice; title: string; caption: string }> = [
   { id: "guided", title: "Guided setup (AI prompt)", caption: "Answer questions, copy prompt, paste CSV" },
-  { id: "import", title: "Import CSV", caption: "Import from template or coach output" },
   { id: "blank", title: "Start blank", caption: "Create goals and actions manually" }
 ];
 

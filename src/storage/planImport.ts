@@ -9,6 +9,25 @@ type ImportResult = {
   scheduleCreated: number;
 };
 
+export type PlanPreviewData = {
+  todayCounts: {
+    core: number;
+    optional: number;
+    recovery: number;
+  };
+  milestones: Array<{
+    title: string;
+    targetDate: string | null;
+    status: string;
+  }>;
+  actionStats: {
+    easy: number;
+    medium: number;
+    hard: number;
+    totalXp: number;
+  };
+};
+
 function nowIso() {
   return new Date().toISOString();
 }
@@ -106,6 +125,55 @@ export async function hasImportedGoals() {
   const db = getDb();
   const row = await db.getFirstAsync<{ count: number }>(`SELECT COUNT(*) AS count FROM goals;`);
   return (row?.count ?? 0) > 0;
+}
+
+export async function getPlanPreviewData(date: string): Promise<PlanPreviewData> {
+  const db = getDb();
+
+  const [todayRows, milestoneRows, actionRows] = await Promise.all([
+    db.getAllAsync<{ kind: "core" | "optional" | "recovery"; count: number }>(
+      `SELECT kind, COUNT(*) AS count
+       FROM daily_schedule
+       WHERE date = ?
+       GROUP BY kind;`,
+      date
+    ),
+    db.getAllAsync<{ title: string; target_date: string | null; status: string }>(
+      `SELECT title, target_date, status
+       FROM goals
+       ORDER BY
+         CASE WHEN target_date IS NULL THEN 1 ELSE 0 END,
+         target_date ASC,
+         created_at DESC
+       LIMIT 6;`
+    ),
+    db.getAllAsync<{ difficulty: "easy" | "medium" | "hard"; count: number; xp_sum: number }>(
+      `SELECT difficulty, COUNT(*) AS count, COALESCE(SUM(xp), 0) AS xp_sum
+       FROM actions
+       GROUP BY difficulty;`
+    )
+  ]);
+
+  const todayCounts: PlanPreviewData["todayCounts"] = { core: 0, optional: 0, recovery: 0 };
+  for (const row of todayRows) {
+    todayCounts[row.kind] = row.count;
+  }
+
+  const actionStats: PlanPreviewData["actionStats"] = { easy: 0, medium: 0, hard: 0, totalXp: 0 };
+  for (const row of actionRows) {
+    actionStats[row.difficulty] = row.count;
+    actionStats.totalXp += row.xp_sum;
+  }
+
+  return {
+    todayCounts,
+    milestones: milestoneRows.map((row) => ({
+      title: row.title,
+      targetDate: row.target_date,
+      status: row.status
+    })),
+    actionStats
+  };
 }
 
 export async function getTodaySchedule(date: string) {
